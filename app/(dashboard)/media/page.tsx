@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
-import { UploadMediaDialog } from "./components/upload-media";
+import { UploadMediaDialog } from "../../../components/media/upload-media";
 import { type Media } from "@/lib/api/media";
 import { useMedias } from "@/hooks/use-media";
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Copy, Download, Trash2 } from "lucide-react";
-import { MediaCard } from "./components/media-card";
+import { MediaCard } from "../../../components/media/media-card";
 
 export default function MediaPanel() {
   const { medias, isLoading, error, refresh, remove, bulkRemove } = useMedias();

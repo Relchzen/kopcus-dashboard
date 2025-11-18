@@ -34,8 +34,14 @@ export function AppSidebar() {
       section: "Management",
       items: [
         { title: "Events", url: "/events" },
-        { title: "Users", url: "/users" },
+        { title: "Organizers", url: "/organizers" },
+        { title: "Venues", url: "/venue" },
+        { title: "Media", url: "/media" },
       ],
+    },
+    {
+      section: "Admin",
+      items: [{ title: "Users", url: "/users" }],
     },
   ];
   const pathname = usePathname();
