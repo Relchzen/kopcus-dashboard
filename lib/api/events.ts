@@ -1,64 +1,81 @@
 // lib/api/events.ts
-import { apiClient } from "./client";
+import { apiClient, ApiResponse } from "./client";
 
 /* ------------------------------------------
  * Types & Interfaces
  * ------------------------------------------ */
 
-export type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED" | "COMPLETED";
+export type EventStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
 export type Visibility = "PUBLIC" | "PRIVATE" | "UNLISTED";
+export type ContentStatus = "INCOMPLETE" | "COMPLETE" | "OUTDATED";
 
 export interface Event {
   id: string;
-  title: string;
   slug: string;
+  title: string;
   shortDesc: string | null;
-  longDesc: string | null;
+
   status: EventStatus;
   visibility: Visibility;
+
   startAt: string;
   endAt: string | null;
-  timezone: string;
+  timezone: string | null;
+
+  // Strapi sync fields
+  strapiDocumentId: string | null;
+  strapiSyncedAt: string | null;
+  strapiNeedsSync: boolean;
+  contentStatus: ContentStatus;
+
   venueId: string | null;
   posterId: string | null;
   bannerId: string | null;
-  pageBuilder: any | null;
-  seoTitle: string | null;
-  seoDescription: string | null;
-  meta: any | null;
+
   features: any | null;
+
+  createdById: string | null;
+  updatedById: string | null;
+  publishedById: string | null;
+  publishedAt: string | null;
+
   createdAt: string;
   updatedAt: string;
 
-  // Relations
-  venue?: any;
+  // Optional relations returned by backend
   poster?: any;
   banner?: any;
-  organizers?: any[];
-  galleryMedia?: any[];
+  venue?: any;
+  organizers?: Array<{
+    organizerId: string;
+    role: string;
+    order: number;
+    organizer?: any;
+  }>;
+  gallery?: any[];
+  schedules?: any[];
+  tickets?: any[];
 }
 
 export interface CreateEventDto {
   title: string;
-  slug?: string;
+  slug: string;
   shortDesc?: string;
-  longDesc?: string;
+
   status?: EventStatus;
   visibility?: Visibility;
-  startAt: Date | undefined;
-  endAt?: Date | undefined;
+
+  startAt: string;
+  endAt?: string | null;
+
   timezone?: string;
+
   venueId?: string;
   posterId?: string;
   bannerId?: string;
-  pageBuilder?: any;
-  seoTitle?: string;
-  seoDescription?: string;
-  meta?: any;
-  features?: any;
 
-  // Relations
   organizerIds?: string[];
+
   organizers?: Array<{
     organizerId: string;
     role: string;
@@ -66,9 +83,14 @@ export interface CreateEventDto {
   }>;
 
   galleryMediaIds?: string[];
+
+  features?: any;
 }
 
-export interface UpdateEventDto extends Partial<CreateEventDto> {}
+
+export interface UpdateEventDto extends Partial<CreateEventDto> {
+  title: string; // required
+}
 
 export interface GetEventsParams {
   page?: number;
@@ -112,80 +134,91 @@ class EventsApi {
 
     const qs = searchParams.toString();
     const url = qs ? `${this.baseUrl}?${qs}` : this.baseUrl;
-
-    return apiClient.get<EventsResponse>(url);
+    console.log(url);
+    return (await apiClient.get<EventsResponse>(url)).data;
   }
 
   async getById(id: string): Promise<Event> {
-    return apiClient.get<Event>(`${this.baseUrl}/${id}`);
+    return (await apiClient.get<Event>(`${this.baseUrl}/${id}`)).data;
   }
 
   async getBySlug(slug: string): Promise<Event> {
-    return apiClient.get<Event>(`${this.baseUrl}/slug/${slug}`);
+    return (await apiClient.get<Event>(`${this.baseUrl}/slug/${slug}`)).data;
   }
 
   /* ---------------------- Create / Update ---------------------- */
   async create(data: CreateEventDto): Promise<Event> {
-    console.log("running create event API");
-    return apiClient.post<Event>(this.baseUrl, data);
+    console.log("POST data:", data);
+
+    const response = await apiClient.post<Event>(this.baseUrl, data)
+    console.log("Received Create Event Response @api/events.ts:", response);
+    console.log("@/lib/api/events.ts create returning: ", response)
+    return response;
   }
 
   async update(id: string, data: UpdateEventDto): Promise<Event> {
-    return apiClient.put<Event>(`${this.baseUrl}/${id}`, data);
+    console.log("UpdateEventDTO @api/events.ts update: ", data)
+    return (await apiClient.put<Event>(`${this.baseUrl}/${id}`, data)).data;
   }
 
   async delete(id: string): Promise<void> {
-    return apiClient.delete(`${this.baseUrl}/${id}`);
+    return (await apiClient.delete<void>(`${this.baseUrl}/${id}`)).data;
+  }
+
+  async updateStatus(id: string, status: EventStatus): Promise<Event> {
+    return (await apiClient.patch<Event>(`${this.baseUrl}/${id}/status`, { status })).data;
   }
 
   /* ---------------------- Publish / Unpublish ---------------------- */
   async publish(id: string): Promise<Event> {
-    return apiClient.post<Event>(`${this.baseUrl}/${id}/publish`);
+    return (await apiClient.post<Event>(`${this.baseUrl}/${id}/publish`));
   }
 
   async unpublish(id: string): Promise<Event> {
-    return apiClient.post<Event>(`${this.baseUrl}/${id}/unpublish`);
+    return (await apiClient.post<Event>(`${this.baseUrl}/${id}/unpublish`));
   }
+
+
 
   /* ---------------------- Organizer Management ---------------------- */
-  async addOrganizer(
-    eventId: string,
-    payload: {
-      organizerId: string;
-      role?: string;
-      order?: number;
-    }
-  ): Promise<any> {
-    return apiClient.post(`${this.baseUrl}/${eventId}/organizers`, payload);
-  }
+  // async addOrganizer(
+  //   eventId: string,
+  //   payload: {
+  //     organizerId: string;
+  //     role?: string;
+  //     order?: number;
+  //   }
+  // ): Promise<any> {
+  //   return (await apiClient.post(`${this.baseUrl}/${eventId}/organizers`, payload)).data;
+  // }
 
-  async updateOrganizer(
-    eventId: string,
-    organizerId: string,
-    payload: { role?: string; order?: number }
-  ): Promise<any> {
-    return apiClient.put(
-      `${this.baseUrl}/${eventId}/organizers/${organizerId}`,
-      payload
-    );
-  }
+  // async updateOrganizer(
+  //   eventId: string,
+  //   organizerId: string,
+  //   payload: { role?: string; order?: number }
+  // ): Promise<any> {
+  //   return (await apiClient.put(
+  //     `${this.baseUrl}/${eventId}/organizers/${organizerId}`,
+  //     payload
+  //   )).data;
+  // }
 
-  async removeOrganizer(eventId: string, organizerId: string): Promise<void> {
-    return apiClient.delete(
-      `${this.baseUrl}/${eventId}/organizers/${organizerId}`
-    );
-  }
+  // async removeOrganizer(eventId: string, organizerId: string): Promise<void> {
+  //   return (await apiClient.delete<void>(
+  //     `${this.baseUrl}/${eventId}/organizers/${organizerId}`
+  //   )).data;
+  // }
 
   /* ---------------------- Gallery Management ---------------------- */
-  async addGalleryMedia(eventId: string, mediaIds: string[]): Promise<any> {
-    return apiClient.post(`${this.baseUrl}/${eventId}/gallery`, {
-      mediaIds,
-    });
-  }
+  // async addGalleryMedia(eventId: string, mediaIds: string[]): Promise<any> {
+  //   return (await apiClient.post(`${this.baseUrl}/${eventId}/gallery`, {
+  //     mediaIds,
+  //   })).data;
+  // }
 
-  async removeGalleryMedia(eventId: string, mediaId: string): Promise<void> {
-    return apiClient.delete(`${this.baseUrl}/${eventId}/gallery/${mediaId}`);
-  }
+  // async removeGalleryMedia(eventId: string, mediaId: string): Promise<void> {
+  //   return (await apiClient.delete<void>(`${this.baseUrl}/${eventId}/gallery/${mediaId}`)).data;
+  // }
 }
 
 export const eventsApi = new EventsApi();

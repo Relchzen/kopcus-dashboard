@@ -68,6 +68,7 @@ class OrganizersApi {
   private baseUrl = "/organizers";
 
   async getAll(params?: GetOrganizersParams): Promise<OrganizersResponse> {
+    console.log("running OrganizersApi getAll");
     const searchParams = new URLSearchParams();
 
     if (params?.page) searchParams.append("page", params.page.toString());
@@ -80,42 +81,46 @@ class OrganizersApi {
     const queryString = searchParams.toString();
     const url = queryString ? `${this.baseUrl}?${queryString}` : this.baseUrl;
 
-    return apiClient.get<OrganizersResponse>(url);
+    console.log("get URL: ", url);
+
+    const organizers = (await apiClient.get<OrganizersResponse>(url)).data;
+    console.log("getAll organizers: ", organizers);
+    return organizers;
   }
 
   async getById(id: string): Promise<Organizer> {
-    return apiClient.get<Organizer>(`${this.baseUrl}/${id}`);
+    return (await apiClient.get<Organizer>(`${this.baseUrl}/${id}`)).data;
   }
 
   async getBySlug(slug: string): Promise<Organizer> {
-    return apiClient.get<Organizer>(`${this.baseUrl}/slug/${slug}`);
+    return (await apiClient.get<Organizer>(`${this.baseUrl}/slug/${slug}`)).data;
   }
 
   async create(data: CreateOrganizerDto): Promise<Organizer> {
-    return apiClient.post<Organizer>(this.baseUrl, data);
+    return (await apiClient.post<Organizer>(this.baseUrl, data)).data;
   }
 
   async update(id: string, data: UpdateOrganizerDto): Promise<Organizer> {
-    return apiClient.patch<Organizer>(`${this.baseUrl}/${id}`, data);
+    return (await apiClient.patch<Organizer>(`${this.baseUrl}/${id}`, data)).data;
   }
 
   async delete(id: string): Promise<void> {
-    return apiClient.delete(`${this.baseUrl}/${id}`);
+    return (await apiClient.delete<void>(`${this.baseUrl}/${id}`)).data;
   }
 
   async uploadLogo(id: string, file: File): Promise<Organizer> {
     const formData = new FormData();
     formData.append("logo", file);
 
-    return apiClient.post<Organizer>(`${this.baseUrl}/${id}/logo`, formData, {
+    return (await apiClient.post<Organizer>(`${this.baseUrl}/${id}/logo`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    });
+    })).data;
   }
 
   async deleteLogo(id: string): Promise<Organizer> {
-    return apiClient.delete<Organizer>(`${this.baseUrl}/${id}/logo`);
+    return (await apiClient.delete<Organizer>(`${this.baseUrl}/${id}/logo`)).data;
   }
 }
 

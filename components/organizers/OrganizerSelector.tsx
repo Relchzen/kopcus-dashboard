@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { User, X } from "lucide-react";
 import { OrganizerSelectorDialog } from "./OrganizerSelectorDialog";
@@ -37,6 +37,11 @@ export function OrganizerSelector({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedOrganizers, setSelectedOrganizers] =
     useState<OrganizerItem[]>(value);
+
+  // Sync internal state with prop changes
+  useEffect(() => {
+    setSelectedOrganizers(value);
+  }, [value]);
 
   const handleAddOrganizers = (newOrganizers: OrganizerItem[]) => {
     setSelectedOrganizers(newOrganizers);
@@ -79,7 +84,7 @@ export function OrganizerSelector({
                   )}
                 </div>
 
-                <div className="flex gap-2 items-start flex-shrink-0">
+                <div className="flex gap-2 items-start shrink-0">
                   <select
                     value={item.role || ""}
                     onChange={(e) => handleUpdateRole(index, e.target.value)}

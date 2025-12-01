@@ -1,3 +1,4 @@
+// user-organizers.ts
 import { useState, useEffect, useCallback } from "react";
 import {
   organizersApi,
@@ -17,7 +18,7 @@ interface UseOrganizersOptions {
 export function useOrganizers(options: UseOrganizersOptions = {}) {
   const { autoFetch = true, params, id, slug } = options;
 
-  // For list of organizers
+  // For list of organizers - initialize as empty array
   const [organizers, setOrganizers] = useState<Organizer[]>([]);
   const [meta, setMeta] = useState({
     total: 0,
@@ -42,12 +43,16 @@ export function useOrganizers(options: UseOrganizersOptions = {}) {
       setIsLoading(true);
       setError(null);
       try {
+        console.log("running fetchOrganizers");
         const response = await organizersApi.getAll({
           ...params,
           ...fetchParams,
         });
+        console.log("fetchOrganizers response:", response);
         setOrganizers(response.data);
         setMeta(response.meta);
+        // Log after setting state
+        console.log("Fetched organizers:", response.data);
       } catch (err) {
         setError(err as Error);
         console.error("Failed to fetch organizers:", err);
@@ -83,8 +88,8 @@ export function useOrganizers(options: UseOrganizersOptions = {}) {
 
       // Update list if in list mode
       if (!isSingleMode) {
-        setOrganizers((prev) => [newOrganizer, ...(prev || [])]);
-        setMeta((prev) => ({ ...prev, total: (prev?.total || 0) + 1 }));
+        setOrganizers((prev) => [newOrganizer, ...prev]);
+        setMeta((prev) => ({ ...prev, total: prev.total + 1 }));
       }
 
       return newOrganizer;
@@ -99,9 +104,7 @@ export function useOrganizers(options: UseOrganizersOptions = {}) {
       // Update in list mode
       if (!isSingleMode) {
         setOrganizers((prev) =>
-          (prev || []).map((org) =>
-            org.id === updateId ? updatedOrganizer : org
-          )
+          prev.map((org) => (org.id === updateId ? updatedOrganizer : org))
         );
       }
 
@@ -121,10 +124,8 @@ export function useOrganizers(options: UseOrganizersOptions = {}) {
 
       // Update list if in list mode
       if (!isSingleMode) {
-        setOrganizers((prev) =>
-          (prev || []).filter((org) => org.id !== deleteId)
-        );
-        setMeta((prev) => ({ ...prev, total: (prev?.total || 0) - 1 }));
+        setOrganizers((prev) => prev.filter((org) => org.id !== deleteId));
+        setMeta((prev) => ({ ...prev, total: prev.total - 1 }));
       }
     },
     [isSingleMode]
@@ -137,9 +138,7 @@ export function useOrganizers(options: UseOrganizersOptions = {}) {
       // Update in list mode
       if (!isSingleMode) {
         setOrganizers((prev) =>
-          (prev || []).map((org) =>
-            org.id === uploadId ? updatedOrganizer : org
-          )
+          prev.map((org) => (org.id === uploadId ? updatedOrganizer : org))
         );
       }
 
@@ -160,9 +159,7 @@ export function useOrganizers(options: UseOrganizersOptions = {}) {
       // Update in list mode
       if (!isSingleMode) {
         setOrganizers((prev) =>
-          (prev || []).map((org) =>
-            org.id === deleteLogoId ? updatedOrganizer : org
-          )
+          prev.map((org) => (org.id === deleteLogoId ? updatedOrganizer : org))
         );
       }
 

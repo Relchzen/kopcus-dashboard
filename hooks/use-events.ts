@@ -8,6 +8,7 @@ import {
   type UpdateEventDto,
   type GetEventsParams,
 } from "@/lib/api/events";
+import { ApiResponse } from "@/lib/api/client";
 
 interface UseEventsOptions {
   autoFetch?: boolean;
@@ -38,6 +39,7 @@ export function useEvents(options: UseEventsOptions = {}) {
       setError(null);
 
       try {
+        console.log("running fetchEvents");
         const res = await eventsApi.getAll({ ...params, ...fetchParams });
         setEvents(res.data);
         setMeta(res.meta);
@@ -96,6 +98,7 @@ export function useEvents(options: UseEventsOptions = {}) {
   const create = useCallback(
     async (data: CreateEventDto): Promise<Event> => {
       console.log("create useEvent hook called");
+      console.log("Sending Event Data to be created: ", data);
       const newEvent = await eventsApi.create(data);
 
       if (!isSingleMode) {
@@ -103,6 +106,7 @@ export function useEvents(options: UseEventsOptions = {}) {
         setMeta((prev) => ({ ...prev, total: (prev?.total || 0) + 1 }));
       }
 
+      console.log("@use-event returning: ", newEvent);
       return newEvent;
     },
     [isSingleMode]
@@ -120,6 +124,8 @@ export function useEvents(options: UseEventsOptions = {}) {
       if (isSingleMode && event?.id === updateId) {
         setEvent(updatedEvent);
       }
+
+      console.log("Updated Event: ", updatedEvent);
 
       return updatedEvent;
     },
@@ -180,6 +186,8 @@ export function useEvents(options: UseEventsOptions = {}) {
     [isSingleMode, event?.id]
   );
 
+
+
   useEffect(() => {
     if (autoFetch) {
       if (isSingleMode) {
@@ -193,6 +201,7 @@ export function useEvents(options: UseEventsOptions = {}) {
   return {
     events,
     event,
+    setEvent,
     meta,
     isLoading,
     error,

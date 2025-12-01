@@ -1,7 +1,7 @@
 // components/venues/venue-selector.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, X } from "lucide-react";
 import { VenueSelectorDialog } from "./VenueSelectorDialog";
@@ -25,6 +25,11 @@ export function VenueSelector({
 }: VenueSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [venue, setVenue] = useState<Venue | null>(selectedVenue || null);
+
+  // Sync internal state with prop changes
+  useEffect(() => {
+    setVenue(selectedVenue || null);
+  }, [selectedVenue]);
 
   const handleSelect = (selectedVenue: Venue) => {
     setVenue(selectedVenue);
@@ -50,12 +55,12 @@ export function VenueSelector({
               )}
               {venue.address && (
                 <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
                   <span className="line-clamp-2">{venue.address}</span>
                 </div>
               )}
             </div>
-            <div className="flex gap-1 flex-shrink-0">
+            <div className="flex gap-1 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -64,14 +69,16 @@ export function VenueSelector({
               >
                 Change
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={handleRemove}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              {!required && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleRemove}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -79,7 +86,7 @@ export function VenueSelector({
         <Button
           type="button"
           variant="outline"
-          className="w-full justify-start h-9" // Match input height
+          className="w-full justify-start h-9"
           onClick={() => setIsDialogOpen(true)}
         >
           <MapPin className="h-4 w-4 mr-2" />
