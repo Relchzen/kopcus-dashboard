@@ -124,3 +124,59 @@
     @apply font-bold text-2xl md:text-3xl lg:text-4xl;
   }
 }
+
+/* Editor.js Styles */
+.codex-editor__redactor {
+  padding-bottom: 150px !important;
+}
+
+.ce-block__content,
+.ce-toolbar__content {
+  max-width: 100%;
+}
+
+.ce-toolbar__plus {
+  color: hsl(var(--muted-foreground));
+}
+
+.ce-toolbar__plus:hover {
+  color: hsl(var(--primary));
+}
+
+.ce-inline-toolbar {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.ce-conversion-toolbar {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.ce-settings {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.ce-popover {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--popover-foreground));
+}
+
+.ce-popover__item:hover {
+  background: hsl(var(--accent));
+}
+
+.cdx-block {
+  color: hsl(var(--foreground));
+}
+
+.ce-paragraph[data-placeholder]:empty::before {
+  color: hsl(var(--muted-foreground));
+}

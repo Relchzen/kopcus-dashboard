@@ -23,8 +23,13 @@ import {
 import { signOut, useSession } from "next-auth/react";
 
 export default function Topbar() {
+  const [mounted, setMounted] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { data: session } = useSession();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     setShowLogoutDialog(false);
@@ -42,7 +47,9 @@ export default function Topbar() {
             <Avatar className="cursor-pointer">
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>
-                {session?.user?.name?.slice(0, 2).toUpperCase() ?? "AA"}
+                {mounted && session?.user?.name
+                  ? session.user.name.slice(0, 2).toUpperCase()
+                  : "AA"}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
