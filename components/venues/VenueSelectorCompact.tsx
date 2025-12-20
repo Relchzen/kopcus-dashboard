@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/command";
 import { VenueSelectorDialog } from "./VenueSelectorDialog";
 import { useVenues } from "@/hooks/use-venues";
-import { Check, ChevronsUpDown, MapPin, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Venue } from "@/lib/api/venues";
 

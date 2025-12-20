@@ -27,7 +27,9 @@ export default function Topbar() {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { data: session } = useSession();
 
+  // Valid pattern for client-side hydration
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

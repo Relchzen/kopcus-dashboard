@@ -1,5 +1,5 @@
 // lib/api/events.ts
-import { apiClient, ApiResponse } from "./client";
+import { apiClient } from "./client";
 
 /* ------------------------------------------
  * Types & Interfaces
@@ -32,7 +32,7 @@ export interface Event {
   posterId: string | null;
   bannerId: string | null;
 
-  features: any | null;
+  features: Record<string, unknown> | null;
 
   createdById: string | null;
   updatedById: string | null;
@@ -43,18 +43,18 @@ export interface Event {
   updatedAt: string;
 
   // Optional relations returned by backend
-  poster?: any;
-  banner?: any;
-  venue?: any;
+  poster?: { id: string; url: string; altText?: string | null };
+  banner?: { id: string; url: string; altText?: string | null };
+  venue?: { id: string; name: string };
   organizers?: Array<{
     organizerId: string;
     role: string;
     order: number;
-    organizer?: any;
+    organizer?: { id: string; name: string };
   }>;
-  gallery?: any[];
-  schedules?: any[];
-  tickets?: any[];
+  gallery?: Array<{ id: string; url: string; altText?: string | null }>;
+  schedules?: Array<Record<string, unknown>>;
+  tickets?: Array<Record<string, unknown>>;
 }
 
 export interface CreateEventDto {
@@ -84,7 +84,7 @@ export interface CreateEventDto {
 
   galleryMediaIds?: string[];
 
-  features?: any;
+  features?: Record<string, unknown>;
 }
 
 
@@ -151,9 +151,9 @@ class EventsApi {
     console.log("POST data:", data);
 
     const response = await apiClient.post<Event>(this.baseUrl, data)
-    console.log("Received Create Event Response @api/events.ts:", response);
-    console.log("@/lib/api/events.ts create returning: ", response)
-    return response;
+    // console.log("Received Create Event Response @api/events.ts:", response);
+    // console.log("@/lib/api/events.ts create returning: ", response)
+    return response.data;
   }
 
   async update(id: string, data: UpdateEventDto): Promise<Event> {
@@ -171,11 +171,11 @@ class EventsApi {
 
   /* ---------------------- Publish / Unpublish ---------------------- */
   async publish(id: string): Promise<Event> {
-    return (await apiClient.post<Event>(`${this.baseUrl}/${id}/publish`));
+    return (await apiClient.post<Event>(`${this.baseUrl}/${id}/publish`)).data;
   }
 
   async unpublish(id: string): Promise<Event> {
-    return (await apiClient.post<Event>(`${this.baseUrl}/${id}/unpublish`));
+    return (await apiClient.post<Event>(`${this.baseUrl}/${id}/unpublish`)).data;
   }
 
 

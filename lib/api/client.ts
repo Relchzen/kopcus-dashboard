@@ -1,5 +1,3 @@
-import { signOut } from "next-auth/react";
-
 export interface ApiResponse<T> {
   success: boolean;
   message?: string;
@@ -57,7 +55,7 @@ class ApiClient {
 
   private buildHeaders(
     existing: HeadersInit | undefined,
-    body: any
+    body: unknown
   ): Headers {
     const headers = new Headers(existing);
 
@@ -106,12 +104,16 @@ class ApiClient {
     message: string,
     url: string,
     response: Response,
-    body: any
+    body: unknown
   ) {
-    const error = new Error(message);
-    (error as any).status = response.status;
-    (error as any).url = url;
-    (error as any).body = body;
+    const error = new Error(message) as Error & {
+      status?: number;
+      url?: string;
+      body?: unknown;
+    };
+    error.status = response.status;
+    error.url = url;
+    error.body = body;
     return error;
   }
 
@@ -180,7 +182,7 @@ class ApiClient {
     endpoint: string,
     data?: unknown,
     options?: RequestInit
-  ): Promise<T> {
+  ): Promise<ApiResponse<T>> {
     console.log("POST data: ", data);
     const response = await this.request<T>(endpoint, {
       ...options,
@@ -188,7 +190,7 @@ class ApiClient {
       body: data instanceof FormData ? data : JSON.stringify(data),
     });
     console.log("Returning from post method API Client ", response);
-    return response.data;
+    return response;
   }
 
   async patch<T>(endpoint: string, data: unknown, options?: RequestInit): Promise<ApiResponse<T>> {

@@ -1,4 +1,4 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Topbar from "@/components/Topbar";
 
@@ -20,7 +20,7 @@ export default async function DashboardsLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="flex min-h-screen w-full flex-col bg-white dark:bg-black sm:items-start">
+      <main className="flex min-h-screen w-full flex-col bg-white dark:bg-black sm:items-start overflow-hidden">
         <Topbar /> {children}
       </main>
     </SidebarProvider>

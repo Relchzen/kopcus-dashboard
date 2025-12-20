@@ -26,7 +26,6 @@ interface MediaSelectorProps {
 export function MediaSelector({
   className,
   label = "Select Media",
-  value,
   selectedMedia,
   onChange,
   folder = "media",
@@ -60,6 +59,7 @@ export function MediaSelector({
         {previewMedia ? (
           <>
             {/* Image fully fills container but keeps aspect ratio */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}`n
             <img
               src={previewMedia.url}
               alt={previewMedia.altText || "Selected media"}

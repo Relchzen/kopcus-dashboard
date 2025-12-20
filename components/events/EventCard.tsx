@@ -43,13 +43,6 @@ export const EventCard = ({ onDelete, ...event }: EventCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const {
-    events,
-    meta,
-    isLoading,
-    error,
-    refetch,
-    create,
-    update,
     remove,
     publish,
     unpublish,
@@ -139,6 +132,7 @@ export const EventCard = ({ onDelete, ...event }: EventCardProps) => {
       {/* Event Image */}
       {event.banner && (
         <div className="aspect-video bg-muted relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}`n
           <img
             src={event.banner.url}
             alt={event.banner.altText || event.title}
@@ -213,7 +207,7 @@ export const EventCard = ({ onDelete, ...event }: EventCardProps) => {
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone. This will permanently delete the
-                  event "{event.title}" and remove it from our servers.
+                  event &quot;{event.title}&quot; and remove it from our servers.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -291,13 +285,16 @@ export const EventCard = ({ onDelete, ...event }: EventCardProps) => {
         <div className="pt-3 border-t flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* Mocking strapi data for now */}
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <EventSyncStatus isSynced={(event as any).strapiSynced || false} />
             <span className="text-xs text-muted-foreground">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {(event as any).strapiSynced ? "Synced" : "Syncing"}
             </span>
           </div>
           <button
             onClick={() => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const url = (event as any).strapiEditUrl || `${process.env.NEXT_PUBLIC_STRAPI_ADMIN_URL}/admin/content-manager/collection-types/api::event.event/${event.strapiDocumentId}`;
               window.open(url, "_blank");
             }}

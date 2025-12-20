@@ -30,7 +30,7 @@ export interface CreateVenueDto {
   capacity?: number;
 }
 
-export interface UpdateVenueDto extends Partial<CreateVenueDto> {}
+export type UpdateVenueDto = Partial<CreateVenueDto>;
 
 export interface FilterVenueDto {
   city?: string;

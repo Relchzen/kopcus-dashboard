@@ -20,6 +20,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function EventSideSettings({ form }: { form: any }) {
   return (
     <div className="sticky top-6 flex flex-col border rounded-lg bg-background">
@@ -81,7 +82,7 @@ export default function EventSideSettings({ form }: { form: any }) {
                     value={field.value || ""}
                     placeholder={form.watch("title") || "Event title"}
                     className="text-sm w-full min-h-[60px] resize-none"
-                    style={{ fieldSizing: "fixed" } as any}
+                    style={{ fieldSizing: "fixed" } as React.CSSProperties}
                     rows={2}
                   />
                 </FormControl>
@@ -107,7 +108,7 @@ export default function EventSideSettings({ form }: { form: any }) {
                     placeholder={form.watch("shortDesc") || "Event description"}
                     rows={4}
                     className="text-sm w-full resize-none"
-                    style={{ fieldSizing: "fixed" } as any}
+                    style={{ fieldSizing: "fixed" } as React.CSSProperties}
                   />
                 </FormControl>
                 <p className="text-xs text-muted-foreground">

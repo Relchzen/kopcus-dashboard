@@ -4,13 +4,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -19,28 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEvents } from "@/hooks/use-events";
-import { useVenues } from "@/hooks/use-venues";
-import { useOrganizers } from "@/hooks/use-organizers";
 import {
   Plus,
   Search,
   Calendar,
-  MapPin,
-  Edit,
-  Trash2,
-  Eye,
-  EyeOff,
-  Users,
-  MoreVertical,
 } from "lucide-react";
-import type { Event, EventStatus, Visibility } from "@/lib/api/events";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import type { EventStatus, Visibility } from "@/lib/api/events";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EventCard } from "@/components/events/EventCard";
@@ -53,15 +30,10 @@ export default function EventsPage() {
 
   const {
     events,
-    meta,
     isLoading,
     error,
     refetch,
-    create,
-    update,
     remove,
-    publish,
-    unpublish,
   } = useEvents();
 
   // const { venues } = useVenues();
@@ -123,7 +95,7 @@ export default function EventsPage() {
         {/* Status Filter */}
         <Select
           value={statusFilter}
-          onValueChange={(value: any) => setStatusFilter(value)}
+          onValueChange={(value: EventStatus | "") => setStatusFilter(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Statuses" />
@@ -140,7 +112,7 @@ export default function EventsPage() {
         {/* Visibility Filter */}
         <Select
           value={visibilityFilter}
-          onValueChange={(value: any) => setVisibilityFilter(value)}
+          onValueChange={(value: Visibility | "") => setVisibilityFilter(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Visibility" />

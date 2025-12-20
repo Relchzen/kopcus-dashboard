@@ -1,7 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
-import { useSession } from "next-auth/react";
 import { UploadMediaDialog } from "../../../components/media/upload-media";
 import { type Media } from "@/lib/api/media";
 import { useMedias } from "@/hooks/use-media";
@@ -16,10 +15,9 @@ import { Copy, Download, Trash2 } from "lucide-react";
 import { MediaCard } from "../../../components/media/media-card";
 
 export default function MediaPanel() {
-  const { medias, isLoading, error, refresh, remove, bulkRemove } = useMedias();
-  const { data: session } = useSession();
+  const { medias, isLoading, error, refresh, remove } = useMedias();
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery] = useState("");
   const [selectedMedias, setSelectedMedias] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
@@ -49,11 +47,6 @@ export default function MediaPanel() {
   const handleHoldSelect = (id: string) => {
     setIsSelectMode(true);
     setSelectedMedias((prev) => (prev.includes(id) ? prev : [...prev, id]));
-  };
-
-  const exitSelectMode = () => {
-    setIsSelectMode(false);
-    setSelectedMedias([]);
   };
 
   const handleDelete = async (id: string) => {
@@ -137,6 +130,7 @@ export default function MediaPanel() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[75vh]">
                 <div className="border rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}`n
                   <img
                     src={selectedMedia.url}
                     alt={selectedMedia.altText || "Media"}

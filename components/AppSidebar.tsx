@@ -16,15 +16,15 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { signOut } from "next-auth/react";
-import {
-  Calendar,
+import {Calendar,
   Users,
-  LayoutDashboard,
-  Settings,
-  LogOut,
+  LayoutDashboard,LogOut,
   MapPin,
   Image,
   Shield,
+  Inbox,
+  Building2,
+  Kanban,
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -40,6 +40,14 @@ export function AppSidebar() {
         { title: "Organizers", url: "/organizers", icon: Users },
         { title: "Venues", url: "/venue", icon: MapPin },
         { title: "Media", url: "/media", icon: Image },
+      ],
+    },
+    {
+      section: "CRM",
+      items: [
+        { title: "Submissions", url: "/crm/submissions", icon: Inbox },
+        { title: "Clients", url: "/crm/clients", icon: Building2 },
+        { title: "Pipeline", url: "/crm/pipeline", icon: Kanban },
       ],
     },
     {

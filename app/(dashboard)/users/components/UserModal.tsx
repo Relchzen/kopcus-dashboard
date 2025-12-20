@@ -24,7 +24,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -124,7 +123,7 @@ export default function UserModal({
         role: "",
       });
     }
-  }, [mode, user, form.reset]);
+  }, [mode, user, form]);
 
   const onSubmit = async (form: UserFormData) => {
     if (!form || Object.keys(form).length === 0) {

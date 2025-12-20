@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import EventForm from "@/components/events/EventForm";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { StrapiEditButton } from "@/components/events/StrapiEditButton";
 import { EventSyncStatus } from "@/components/events/EventSyncStatus";
@@ -38,11 +37,15 @@ const eventFormSchema = z.object({
   endAt: z.string().optional(),
   timezone: z.string().optional(),
   venueId: z.string().optional(),
+   
   venue: z.any().optional(),
   posterId: z.string().optional(),
+   
   poster: z.any().optional(),
   bannerId: z.string().optional(),
+   
   banner: z.any().optional(),
+   
   organizers: z.array(z.any()).optional(),
   organizerIds: z.array(z.string()).optional(),
 });
@@ -92,6 +95,7 @@ export default function EditEventPage() {
     };
 
     const transformedOrganizers =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       event?.organizers?.map((eo: any) => ({
         organizerId: eo.organizerId,
         organizer: eo.organizer,
@@ -115,11 +119,13 @@ export default function EditEventPage() {
       bannerId: event?.bannerId || "",
       banner: event?.banner,
       organizers: transformedOrganizers,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       organizerIds: transformedOrganizers.map((o: any) => o.organizerId),
     };
 
     // Reset the form with the data
     form.reset(formData, { keepDefaultValues: false });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setStrapiSynced(!(event as any).strapiNeedsSync);
 
     // Set form as ready after a brief delay to ensure all watchers are updated
@@ -207,8 +213,10 @@ export default function EditEventPage() {
 
   // Mock Strapi data for now
   const strapiEditUrl =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (event as any).strapiEditUrl ||
     `${process.env.NEXT_PUBLIC_STRAPI_ADMIN_URL}/admin/content-manager/collection-types/api::event.event/${
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (event as any).strapiDocumentId || event.id
     }`;
 

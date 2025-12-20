@@ -1,5 +1,5 @@
 // hooks/use-venues.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   fetchVenues,
   fetchVenue,
@@ -17,23 +17,24 @@ export function useVenues(filters?: FilterVenueDto) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadVenues = async () => {
+  const loadVenues = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       const data = await fetchVenues(filters);
       setVenues(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
       console.error("Error loading venues:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     loadVenues();
-  }, [JSON.stringify(filters)]);
+  }, [loadVenues]);
 
   const refresh = () => {
     loadVenues();
@@ -79,8 +80,9 @@ export function useVenue(id: string) {
         setError(null);
         const data = await fetchVenue(id);
         setVenue(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        setError(errorMessage);
         console.error(`Error loading venue ${id}:`, err);
       } finally {
         setIsLoading(false);

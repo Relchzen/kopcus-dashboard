@@ -81,6 +81,7 @@ export function MediaCard({
     >
       {/* Image */}
       <div className="aspect-video bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element */}`n
         <img
           src={media.url}
           alt={media.altText || "Media"}
@@ -94,7 +95,7 @@ export function MediaCard({
         <div className="absolute top-2 left-2">
           <Checkbox
             checked={isSelected}
-            onCheckedChange={(checked) => {
+            onCheckedChange={() => {
               // stopPropagation so it doesn't open details
               // parent handles toggling and select mode state
               // if the checkbox is used to select, ensure select mode is active - parent will set it

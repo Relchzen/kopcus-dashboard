@@ -1,7 +1,8 @@
 // components/media/media-picker-dialog.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -52,13 +53,7 @@ export function MediaPickerDialog({
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (open && session?.accessToken) {
-      fetchMedias();
-    }
-  }, [open, session]);
-
-  async function fetchMedias() {
+  const fetchMedias = useCallback(async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_NEST_API_URL}/media`, {
         headers: {
@@ -72,7 +67,13 @@ export function MediaPickerDialog({
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [session?.accessToken]);
+
+  useEffect(() => {
+    if (open && session?.accessToken) {
+      fetchMedias();
+    }
+  }, [open, session?.accessToken, fetchMedias]);
 
   const filteredMedias = medias.filter((media) =>
     media.altText?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -86,7 +87,7 @@ export function MediaPickerDialog({
     }
   };
 
-  const handleUploadSuccess = (uploadedMedia: any) => {
+  const handleUploadSuccess = (uploadedMedia: { id: string; url: string; width?: number; height?: number }) => {
     fetchMedias();
     setSelectedMediaId(uploadedMedia.id);
   };
@@ -143,10 +144,11 @@ export function MediaPickerDialog({
                       )}
                       onClick={() => setSelectedMediaId(media.id)}
                     >
-                      <img
+                      <Image
                         src={media.url}
                         alt={media.altText || "Media"}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                       {selectedMediaId === media.id && (
                         <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">

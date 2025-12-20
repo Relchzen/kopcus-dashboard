@@ -1,9 +1,6 @@
-import React from "react";
 import { getSession } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_NEST_API_URL;
-
-type Props = {};
 
 export interface Media {
   id: string;

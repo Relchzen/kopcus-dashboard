@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ import {
   Calendar,
   ExternalLink,
 } from "lucide-react";
-import type { Venue } from "@/lib/api/venues";
+import type { Venue, CreateVenueDto } from "@/lib/api/venues";
 
 export default function VenuesPage() {
   const { venues, isLoading, error, refresh, create, update, remove } =
@@ -50,7 +50,7 @@ export default function VenuesPage() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: CreateVenueDto) => {
     setIsSubmitting(true);
     try {
       if (editingVenue) {

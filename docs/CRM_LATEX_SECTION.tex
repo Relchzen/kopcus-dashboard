@@ -1,0 +1,310 @@
+\subsubsection{Implementasi Modul CRM untuk Manajemen Hubungan Klien}
+
+Untuk mendukung proses bisnis agensi digital, penulis mengembangkan modul \textit{Customer Relationship Management} (CRM) yang terintegrasi dengan sistem formulir kontak yang telah dijelaskan sebelumnya. Modul ini dirancang untuk mengelola siklus hidup hubungan klien mulai dari tahap \textit{inquiry} awal hingga konversi menjadi proyek aktif.
+
+Berbeda dengan sistem CRM konvensional yang bersifat monolitik, penulis menerapkan arsitektur modular berbasis komponen React dengan manajemen state global menggunakan pustaka \textbf{Zustand}. Pendekatan ini dipilih untuk memastikan persistensi data lintas halaman tanpa perlu melakukan \textit{request} ulang ke server pada setiap navigasi pengguna.
+
+\paragraph{Arsitektur Manajemen State}
+
+Mengingat kompleksitas entitas yang saling berelasi (Klien, Kontak, dan Deal), penulis merancang \textit{store} terpusat yang menangani logika bisnis secara atomik. Struktur data yang dikelola mencakup tiga entitas utama dengan relasi sebagai berikut:
+
+\begin{itemize}
+    \item \textbf{ContactSubmission:} Data mentah dari formulir kontak publik dengan status validasi (NEW, REVIEWED, CONTACTED, CLOSED).
+    \item \textbf{Client:} Entitas perusahaan klien yang memiliki relasi \textit{one-to-many} dengan Contact dan Deal.
+    \item \textbf{Deal:} Representasi peluang proyek dengan tahapan pipeline (NEW, NEGOTIATION, WON, LOST) dan nilai kontrak.
+\end{itemize}
+
+Implementasi \textit{store} menggunakan pola \textit{immutable state update} untuk menjaga konsistensi data. Kode \ref{lst:zustand_store} menunjukkan contoh aksi konversi submission menjadi entitas klien beserta deal-nya secara atomik.
+
+\begin{lstlisting}[basicstyle=\linespread{0.8},language=JavaScript, caption={Implementasi Zustand Store untuk Konversi Submission ke Deal}, label={lst:zustand_store}]
+// hooks/use-crm-store.ts
+import { create } from 'zustand';
+import { toast } from 'sonner';
+
+interface CrmStore {
+  submissions: ContactSubmission[];
+  clients: Client[];
+  
+  convertSubmission: (submissionId: string, payload: ConvertPayload) => void;
+}
+
+export const useCrmStore = create<CrmStore>((set) => ({
+  submissions: mockSubmissions,
+  clients: mockClients,
+
+  convertSubmission: (submissionId, payload) => {
+    set((state) => {
+      // 1. Ubah status submission menjadi CLOSED
+      const updatedSubmissions = state.submissions.map(s =>
+        s.id === submissionId ? { ...s, status: 'CLOSED' } : s
+      );
+
+      // 2. Cari atau buat klien baru
+      let targetClient = state.clients.find(c => c.name === payload.clientName);
+      
+      if (!targetClient) {
+        // Buat klien baru dengan contact dan deal
+        targetClient = {
+          id: generateId(),
+          name: payload.clientName,
+          contacts: [{ /* data dari submission */ }],
+          deals: [{
+            id: generateId(),
+            title: payload.dealTitle,
+            value: payload.dealValue,
+            stage: 'NEW',
+            createdAt: new Date().toISOString()
+          }]
+        };
+        
+        return {
+          submissions: updatedSubmissions,
+          clients: [...state.clients, targetClient]
+        };
+      } else {
+        // Tambahkan contact dan deal ke klien yang ada
+        const updatedClients = state.clients.map(c => {
+          if (c.id === targetClient.id) {
+            return {
+              ...c,
+              contacts: [...c.contacts, /* contact baru */],
+              deals: [...c.deals, /* deal baru */]
+            };
+          }
+          return c;
+        });
+        
+        return { submissions: updatedSubmissions, clients: updatedClients };
+      }
+    });
+
+    toast.success('Klien dan Deal berhasil dibuat!');
+  }
+}));
+\end{lstlisting}
+
+Pada kode di atas, operasi konversi dilakukan secara transaksional dalam satu pemanggilan fungsi \texttt{set()}, memastikan tidak terjadi inkonsistensi data apabila terdapat kegagalan di tengah proses. Notifikasi \textit{toast} ditampilkan menggunakan pustaka Sonner untuk memberikan umpan balik visual kepada pengguna.
+
+\paragraph{Validasi Data Menggunakan Zod Schema}
+
+Untuk memastikan integritas data yang dikirim melalui formulir konversi dan pembuatan deal, penulis mengimplementasikan skema validasi menggunakan pustaka \textbf{Zod}. Skema ini terintegrasi dengan React Hook Form melalui \texttt{zodResolver}, sehingga validasi dapat dilakukan secara \textit{real-time} pada sisi klien sebelum data dikirim ke \textit{store}.
+
+Kode \ref{lst:zod_validation} menunjukkan definisi skema untuk konversi submission dan pembuatan deal manual.
+
+\begin{lstlisting}[basicstyle=\linespread{0.8},language=JavaScript, caption={Skema Validasi Zod untuk Formulir CRM}, label={lst:zod_validation}]
+// lib/schemas/crm.ts
+import { z } from 'zod';
+
+// Skema untuk Konversi Submission
+export const ConvertToDealSchema = z.object({
+  clientName: z.string().min(1, "Nama klien wajib diisi"),
+  dealTitle: z.string().min(1, "Judul deal wajib diisi"),
+  dealValue: z.number().positive("Nilai deal harus lebih dari 0"),
+});
+
+// Skema untuk Pembuatan Deal Manual
+export const CreateDealSchema = z.object({
+  clientId: z.string().min(1, "Klien harus dipilih"),
+  title: z.string().min(1, "Judul deal wajib diisi"),
+  description: z.string().optional(),
+  value: z.number().positive("Nilai deal harus berupa angka positif"),
+  stage: z.enum(['NEW', 'NEGOTIATION', 'WON', 'LOST']),
+});
+
+export type ConvertToDealFormData = z.infer<typeof ConvertToDealSchema>;
+export type CreateDealFormData = z.infer<typeof CreateDealSchema>;
+\end{lstlisting}
+
+Integrasi skema ini dengan React Hook Form memungkinkan validasi terjadi secara sinkron saat pengguna mengetik, mengurangi kemungkinan kesalahan input dan meningkatkan pengalaman pengguna. Pesan error ditampilkan secara kontekstual di bawah setiap field formulir yang tidak valid.
+
+\paragraph{Desain Responsif untuk Multi-Perangkat}
+
+Mengingat tim manajemen dapat mengakses sistem CRM dari berbagai perangkat (desktop, tablet, smartphone), penulis menerapkan pola desain responsif menggunakan Tailwind CSS dengan pendekatan \textit{mobile-first}. Tabel data dengan kolom yang banyak tidak cocok untuk layar kecil, sehingga penulis mengimplementasikan transformasi tata letak dari tabel ke kartu.
+
+Kode \ref{lst:responsive_table} menunjukkan implementasi rendering kondisional untuk tabel submission yang beradaptasi dengan lebar layar.
+
+\begin{lstlisting}[basicstyle=\linespread{0.8},language=JavaScript, caption={Implementasi Tabel Responsif dengan Dual Rendering}, label={lst:responsive_table}]
+// components/crm/SubmissionTable.tsx
+export function SubmissionTable() {
+  const submissions = useCrmStore((state) => state.submissions);
+
+  return (
+    <>
+      {/* Mobile Card View (< 768px) */}
+      <div className="md:hidden space-y-4">
+        {submissions.map((submission) => (
+          <div key={submission.id} className="p-4 rounded-lg border bg-card">
+            <div className="font-medium">{submission.fullName}</div>
+            <div className="text-sm text-muted-foreground">{submission.email}</div>
+            <div className="text-sm mt-2">
+              <span className="text-muted-foreground">Project:</span>{" "}
+              {submission.projectType}
+            </div>
+            <div className="text-sm">
+              <span className="text-muted-foreground">Budget:</span>{" "}
+              {submission.budgetRange}
+            </div>
+            <Badge className="mt-2">{submission.status}</Badge>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View (>= 768px) */}
+      <div className="hidden md:block rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Sender</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Project Info</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {submissions.map((submission) => (
+              <TableRow key={submission.id}>
+                {/* ... konten tabel ... */}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+}
+\end{lstlisting}
+
+Pada implementasi di atas, kelas utilitas Tailwind \texttt{md:hidden} dan \texttt{hidden md:block} digunakan untuk mengontrol visibility komponen berdasarkan \textit{breakpoint} 768px. Pendekatan ini memastikan kepadatan informasi tetap optimal di setiap ukuran layar tanpa mengorbankan \textit{usability}.
+
+\paragraph{Penanganan Perubahan Breaking pada Next.js 15}
+
+Selama proses pengembangan, penulis menemukan bahwa halaman detail klien dengan routing dinamis \texttt{/crm/clients/[id]} mengalami error 404 meskipun data telah ada di \textit{store}. Setelah dilakukan investigasi, ditemukan bahwa Next.js versi 15 mengubah cara penanganan parameter routing dari objek biasa menjadi \texttt{Promise}.
+
+Solusi yang diterapkan adalah menggunakan React hook \texttt{use()} untuk meng-\textit{unwrap} Promise parameter sebelum digunakan dalam komponen. Kode \ref{lst:nextjs_params_fix} menunjukkan perbandingan implementasi sebelum dan sesudah perbaikan.
+
+\begin{lstlisting}[basicstyle=\linespread{0.8},language=JavaScript, caption={Perbaikan Penanganan Params untuk Next.js 15}, label={lst:nextjs_params_fix}]
+// SEBELUM (Next.js 14 - Menyebabkan Error)
+export default function ClientDetailPage({ 
+  params 
+}: { 
+  params: { id: string } 
+}) {
+  const client = useCrmStore(state => state.getClientById(params.id));
+  // Error: params.id adalah Promise, bukan string
+}
+
+// SESUDAH (Next.js 15 - Berfungsi Normal)
+import { use } from 'react';
+
+export default function ClientDetailPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  const { id } = use(params); // Unwrap Promise
+  const client = useCrmStore(state => state.getClientById(id));
+  
+  if (!client) notFound();
+  
+  return (
+    <div className="container mx-auto p-6">
+      <ClientHeader client={client} />
+      {/* ... konten lainnya ... */}
+    </div>
+  );
+}
+\end{lstlisting}
+
+Perbaikan ini krusial karena tanpa penanganan yang tepat, seluruh fitur detail klien tidak dapat diakses oleh pengguna. Penggunaan hook \texttt{use()} merupakan pendekatan yang direkomendasikan oleh dokumentasi resmi Next.js untuk menangani asynchronous data pada komponen klien.
+
+\paragraph{Visualisasi Pipeline dengan Kanban Board}
+
+Untuk memberikan gambaran visual terhadap tahapan deal yang sedang berjalan, penulis mengimplementasikan papan kanban dengan empat kolom yang merepresentasikan tahapan pipeline: NEW, NEGOTIATION, WON, dan LOST. Setiap kartu deal dapat diklik untuk navigasi ke halaman detail klien terkait.
+
+Gambar \ref{fig:crm_pipeline} menunjukkan tampilan kanban board beserta kartu statistik di bagian atas yang menampilkan total nilai pipeline, jumlah deal aktif, dan tingkat konversi (\textit{conversion rate}).
+
+\begin{figure}[h]
+    \centering
+    \fbox{\includegraphics[width=1.0\textwidth]{assets/pics/crm_pipeline_desktop.png}}
+    \caption{Tampilan Pipeline Deal dengan Kanban Board dan Kartu Statistik}
+    \label{fig:crm_pipeline}
+\end{figure}
+
+Implementasi kanban menggunakan \textit{selector} Zustand untuk mengambil deal berdasarkan stage secara efisien. Kode \ref{lst:kanban_selector} menampilkan fungsi selector yang memfilter deal berdasarkan tahapan pipeline.
+
+\begin{lstlisting}[basicstyle=\linespread{0.8},language=JavaScript, caption={Selector Zustand untuk Filtering Deal Berdasarkan Stage}, label={lst:kanban_selector}]
+// hooks/use-crm-store.ts
+export const useCrmStore = create<CrmStore>((set, get) => ({
+  // ... state lainnya ...
+
+  // Selector: Ambil deals berdasarkan stage
+  getDealsByStage: (stage: DealStage) => {
+    return get().clients
+      .flatMap(client => client.deals)
+      .filter(deal => deal.stage === stage);
+  },
+
+  // Selector: Ambil hanya deals aktif (exclude WON & LOST)
+  getActiveDeals: () => {
+    return get().clients
+      .flatMap(client => client.deals)
+      .filter(deal => deal.stage !== 'WON' && deal.stage !== 'LOST');
+  }
+}));
+\end{lstlisting}
+
+Penggunaan \textit{computed selector} ini memastikan bahwa komponen kanban tidak perlu melakukan iterasi manual terhadap seluruh data klien, meningkatkan performa rendering terutama ketika jumlah data bertambah banyak.
+
+\paragraph{Validasi Fungsional dan Responsivitas}
+
+Untuk memastikan sistem berfungsi dengan baik pada berbagai ukuran layar, penulis melakukan pengujian responsivitas dengan meresizing jendela browser dari lebar 375px (mobile) hingga 1200px (desktop). Gambar \ref{fig:crm_mobile} menampilkan tampilan modul CRM dalam mode mobile dengan tata letak kartu yang mengoptimalkan penggunaan ruang vertikal.
+
+\begin{figure}[h]
+    \centering
+    \fbox{\includegraphics[width=0.6\textwidth]{assets/pics/crm_submissions_mobile.png}}
+    \caption{Tampilan Submission Inbox pada Perangkat Mobile (375px)}
+    \label{fig:crm_mobile}
+\end{figure}
+
+Sementara itu, Gambar \ref{fig:crm_client_detail} memperlihatkan halaman detail klien dengan tab untuk menampilkan daftar kontak dan deals. Implementasi tab menggunakan komponen Shadcn UI yang telah dioptimalkan untuk aksesibilitas dan keyboard navigation.
+
+\begin{figure}[h]
+    \centering
+    \fbox{\includegraphics[width=1.0\textwidth]{assets/pics/crm_client_detail.png}}
+    \caption{Halaman Detail Klien dengan Tab Contacts dan Deals}
+    \label{fig:crm_client_detail}
+\end{figure}
+
+Pengujian alur konversi juga dilakukan untuk memvalidasi bahwa submission yang dikonversi akan otomatis muncul di halaman klien dan pipeline tanpa perlu \textit{refresh} manual. Hal ini membuktikan bahwa mekanisme \textit{reactive state} dari Zustand berfungsi dengan baik.
+
+\paragraph{Persiapan Integrasi Backend}
+
+Meskipun implementasi saat ini menggunakan data mock untuk keperluan demonstrasi, penulis telah merancang arsitektur yang memudahkan migrasi ke backend API. Aksi-aksi pada Zustand store dirancang agar dapat diganti dengan pemanggilan \texttt{fetch()} ke endpoint REST API tanpa mengubah struktur komponen.
+
+Untuk keperluan integrasi, penulis telah menyusun spesifikasi API lengkap yang mencakup 10 endpoint dengan format request/response yang terstandarisasi. Dokumen spesifikasi ini disertakan sebagai lampiran teknis untuk digunakan oleh tim backend dalam tahap implementasi selanjutnya.
+
+Tabel \ref{tab:crm_api_endpoints} merangkum endpoint API yang diperlukan beserta metode HTTP dan fungsi masing-masing.
+
+\begin{table}[h]
+\centering
+\caption{Daftar Endpoint API untuk Modul CRM}
+\label{tab:crm_api_endpoints}
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\textbf{Metode} & \textbf{Endpoint} & \textbf{Fungsi} \\ \hline
+GET & /api/crm/submissions & Mengambil semua submission \\ \hline
+POST & /api/crm/submissions/:id/convert & Konversi submission ke deal \\ \hline
+DELETE & /api/crm/submissions/:id & Hapus submission \\ \hline
+GET & /api/crm/clients & Mengambil semua klien \\ \hline
+GET & /api/crm/clients/:id & Mengambil detail klien \\ \hline
+POST & /api/crm/clients & Membuat klien baru \\ \hline
+DELETE & /api/crm/clients/:id & Hapus klien (cascade) \\ \hline
+POST & /api/crm/deals & Membuat deal baru \\ \hline
+PATCH & /api/crm/deals/:id & Update tahapan deal \\ \hline
+DELETE & /api/crm/deals/:id & Hapus deal \\ \hline
+\end{tabular}
+\end{table}
+
+Dengan adanya spesifikasi yang jelas, proses integrasi backend dapat dilakukan secara paralel tanpa menghambat pengembangan fitur frontend lainnya. Pendekatan ini sejalan dengan prinsip \textit{separation of concerns} dalam arsitektur aplikasi modern.

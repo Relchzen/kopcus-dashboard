@@ -207,8 +207,9 @@ export function UploadMediaDialog({
 
       // Reset and close
       handleClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to upload file");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload file';
+      setError(errorMessage);
     } finally {
       setIsUploading(false);
     }
@@ -277,6 +278,7 @@ export function UploadMediaDialog({
               {/* Left: Image Preview */}
               <div className="space-y-4">
                 <div className="relative border rounded-lg overflow-hidden bg-muted aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}`n
                   <img
                     src={uploadPreview}
                     alt="Preview"

@@ -1,7 +1,5 @@
 import { apiClient } from "./client";
 
-const API_URL = process.env.NEXT_PUBLIC_NEST_API_URL;
-
 export type OrganizerType = "ARTIST" | "COMPANY" | "INDIVIDUAL" | "SPONSOR";
 
 export interface Organizer {

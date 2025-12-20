@@ -17,6 +17,54 @@ import {
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
+// Extract actions cell into a proper component to use hooks
+function ActionsCell({ user }: { user: User }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  return (
+    <>
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+          <DropdownMenuItem
+            onClick={() => navigator.clipboard.writeText(user.id)}
+          >
+            Copy User ID
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {/* 🧩 Looks and feels exactly like a menu item */}
+          <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+            Edit User
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* 🪄 Dynamic Modal (create/edit) */}
+      <UserModal
+        mode="edit"
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        user={user}
+        onSuccess={() => {
+          setIsModalOpen(false);
+          // Optionally refetch or reload users
+          window.location.reload();
+        }}
+      />
+    </>
+  );
+}
+
 export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "name",
@@ -41,52 +89,6 @@ export const columns: ColumnDef<User>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const user = row.original;
-      const [isModalOpen, setIsModalOpen] = useState(false);
-
-      return (
-        <>
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(user.id)}
-              >
-                Copy User ID
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              {/* 🧩 Looks and feels exactly like a menu item */}
-              <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
-                Edit User
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* 🪄 Dynamic Modal (create/edit) */}
-          <UserModal
-            mode="edit"
-            open={isModalOpen}
-            onOpenChange={setIsModalOpen}
-            user={user}
-            onSuccess={() => {
-              setIsModalOpen(false);
-              // Optionally refetch or reload users
-              window.location.reload();
-            }}
-          />
-        </>
-      );
-    },
+    cell: ({ row }) => <ActionsCell user={row.original} />,
   },
 ];

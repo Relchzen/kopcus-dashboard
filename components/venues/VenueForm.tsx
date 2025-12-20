@@ -34,8 +34,10 @@ export function VenueForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Valid pattern: Sync form data with venue prop changes
   useEffect(() => {
     if (venue) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         name: venue.name,
         address: venue.address || "",

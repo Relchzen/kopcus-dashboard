@@ -8,7 +8,7 @@ export const EventFormBanner = () => {
       <AlertTitle>Two-Step Process</AlertTitle>
       <AlertDescription className="text-blue-800 dark:text-blue-200">
         Step 1: Create your event here with basic information. <br />
-        Step 2: After creation, you'll add detailed content, images, and rich
+        Step 2: After creation, you&apos;ll add detailed content, images, and rich
         descriptions in our Content Management System.
       </AlertDescription>
     </Alert>

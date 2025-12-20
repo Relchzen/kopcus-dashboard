@@ -1,9 +1,8 @@
 // hooks/use-media.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
   fetchMedias,
-  fetchMedia,
   uploadMedia,
   updateMediaAltText,
   deleteMedia,
@@ -17,7 +16,7 @@ export function useMedias(type?: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadMedias = async () => {
+  const loadMedias = useCallback(async () => {
     if (!session?.accessToken) return;
 
     try {
@@ -25,17 +24,18 @@ export function useMedias(type?: string) {
       setError(null);
       const data = await fetchMedias(type);
       setMedias(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
       console.error("Error loading medias:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.accessToken, type]);
 
   useEffect(() => {
     loadMedias();
-  }, [session, type]);
+  }, [loadMedias]);
 
   const refresh = () => {
     loadMedias();

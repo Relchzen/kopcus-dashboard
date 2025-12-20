@@ -5,23 +5,39 @@ import { Loader2, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Dynamic imports to avoid SSR issues
+// EditorJS and its plugins don't have proper TypeScript definitions for dynamic imports
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let EditorJS: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Header: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let List: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Paragraph: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Image: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Quote: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Delimiter: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Table: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Code: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Warning: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Checklist: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Embed: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let InlineCode: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Marker: any = null;
 
 interface OutputData {
   time?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   blocks: any[];
   version?: string;
 }
@@ -41,9 +57,9 @@ export function PageBuilder({
   readOnly = false,
   minHeight = "500px",
 }: PageBuilderProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
   const holderRef = useRef<HTMLDivElement>(null);
-  const [isReady, setIsReady] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -140,6 +156,7 @@ export function PageBuilder({
             setIsInitializing(false);
             isInitialized.current = true;
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onChange: async (api: any) => {
             try {
               const content = await api.saver.save();
@@ -264,9 +281,10 @@ export function PageBuilder({
         });
 
         editorRef.current = editor;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error initializing editor:", err);
-        setError(err.message || "Failed to initialize editor");
+        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize editor';
+        setError(errorMessage);
         setIsInitializing(false);
       }
     };
@@ -287,6 +305,7 @@ export function PageBuilder({
         }
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted]); // Remove all other dependencies to prevent re-initialization
 
   if (!mounted) {

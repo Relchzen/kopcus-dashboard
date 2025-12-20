@@ -1,6 +1,5 @@
 // hooks/use-events.ts
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import {
   eventsApi,
   type Event,
@@ -8,7 +7,6 @@ import {
   type UpdateEventDto,
   type GetEventsParams,
 } from "@/lib/api/events";
-import { ApiResponse } from "@/lib/api/client";
 
 interface UseEventsOptions {
   autoFetch?: boolean;
@@ -19,7 +17,6 @@ interface UseEventsOptions {
 
 export function useEvents(options: UseEventsOptions = {}) {
   const { autoFetch = true, params, id, slug } = options;
-  const { data: session } = useSession();
   const [event, setEvent] = useState<Event | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);

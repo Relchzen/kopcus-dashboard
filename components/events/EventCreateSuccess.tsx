@@ -1,7 +1,7 @@
 // EventCreateSuccess.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { CheckCircle, ArrowRight, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,8 +38,6 @@ export const EventCreateSuccess = ({
         if (!data) return;
 
         if (data.strapiDocumentId && !data.strapiNeedsSync) {
-          const url = `${process.env.NEXT_PUBLIC_STRAPI_ADMIN_URL}/admin/content-manager/collection-types/api::event.event/${data.strapiDocumentId}`;
-
           return; // stop polling
         }
 

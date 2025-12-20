@@ -9,10 +9,10 @@ function SuccessPageContent() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
 
+  // Call hook unconditionally (React rules)
+  const { data, loading } = useEventSyncPolling(eventId || "");
+
   if (!eventId) return <div>Invalid request</div>;
-
-  const { data, loading } = useEventSyncPolling(eventId);
-
   if (loading || !data) return <div>Loading...</div>;
 
   return (

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { slugify } from "@/lib/utils";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function EventForm({ form }: { form: any }) {
   const title = form.watch("title");
 

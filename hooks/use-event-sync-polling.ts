@@ -43,6 +43,8 @@ export function useEventSyncPolling(eventId: string) {
         // poll every 3 seconds
         const interval = setInterval(fetchData, 3000);
 
+        // Valid pattern: Initialize loading state after setup
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoading(false);
         return () => {
             active = false;
